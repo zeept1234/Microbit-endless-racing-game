@@ -2,31 +2,31 @@ import microbit
 import random
 
 pos = 2
-exit_loop = 0
+exit_loop = False
+started = False
 
 def start_game(): #Shows player, enables movement
-    microbit.display.scroll("", wait = False)
     show_player()
 
     if microbit.button_a.was_pressed():
-        global pos
         move_left()
 
     if microbit.button_b.was_pressed():
-        global pos
         move_right()
 
     if microbit.pin_logo.is_touched():
         reset()
 
 def move_left(): #Moves left
+    global pos
     pos = pos - 1
     if pos < 0:
-        pos = 5
+        pos = 4
 
 def move_right(): #Moves right
+    global pos
     pos = pos + 1
-    if pos > 5:
+    if pos > 4:
         pos = 0
 
 def show_player(): #Displays player location according to {pos}
@@ -67,18 +67,37 @@ def show_player(): #Displays player location according to {pos}
         microbit.display.set_pixel(0,4,0)
 
 def reset(): #Exits loop and displays start screen
+    microbit.sleep(200)
     global exit_loop
-    exit_loop = 1
-    start()
+    global started
+    global pos
+    pos = 2
+    exit_loop = True
+    started = False
+    start_menu()
+    exit_loop = False
 
-def start():
-    microbit.display.scroll("Car game: Press touch sensor to start!", wait = False)
+def start_menu():
+    global started
+    microbit.display.scroll("Car game: Press touch sensor to start!", wait = False) #40 seconds to finish scrolling
+    start_time = microbit.running_time()
 
-while True:
-    if microbit.pin_logo.is_touched():
-        reset()
+    while not started:
+        if microbit.pin_logo.is_touched():
+            microbit.sleep(200)
+            started = True
+            microbit.display.scroll("", wait = False)
+        if microbit.running_time() >= start_time + 40000:
+            microbit.sleep(200)
+            started = True
+            microbit.display.scroll("", wait = False)
 
-    if exit_loop == 1:
+start_menu()
+
+while started == True:
+    start_game()
+
+    if exit_loop == True:
         break
+        
 
-start_game()
