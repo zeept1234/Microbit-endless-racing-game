@@ -9,12 +9,14 @@ def start_game(): #Shows player, enables movement
     show_player()
 
     if microbit.button_a.was_pressed():
+        global pos
         move_left()
 
     if microbit.button_b.was_pressed():
+        global pos
         move_right()
 
-    if pin_logo.is_touched():
+    if microbit.pin_logo.is_touched():
         reset()
 
 def move_left(): #Moves left
@@ -46,7 +48,7 @@ def show_player(): #Displays player location according to {pos}
     if pos == 2:
         microbit.display.set_pixel(2,4,9)
         microbit.display.set_pixel(1,4,0)
-        microbit.microbit.display.set_pixel(0,4,0)
+        microbit.display.set_pixel(0,4,0)
         microbit.display.set_pixel(3,4,0)
         microbit.display.set_pixel(4,4,0)
         
@@ -73,7 +75,7 @@ def start():
     microbit.display.scroll("Car game: Press touch sensor to start!", wait = False)
 
 while True:
-    if pin_logo.is_touched():
+    if microbit.pin_logo.is_touched():
         reset()
 
     if exit_loop == 1:
