@@ -9,10 +9,11 @@ obstacle_x = -1
 obstacle_timer = 0
 previous_pixel = 0
 
-def start_game(): #Shows player, enables movement
+def start_game(): #Starts other functions
     show_player()
-    spawn_obstacle()
+    continuos_spawn()
     kill_check()
+    kill_timer_check()
 
     if microbit.button_a.was_pressed():
         move_left()
@@ -90,12 +91,13 @@ def start_menu():
             microbit.display.scroll("", wait = False)
 
 def spawn_obstacle(): #Spawns obstacles which move closer every 750ms
-    global obstacle_spwan, obstacle_y, obstacle_timer, obstacle_x, obstacle_kill
+    global obstacle_spwan, obstacle_y, obstacle_timer, obstacle_x, obstacle_kill, kill_timer
     if obstacle_y == -1:
         obstacle_x = random.randint(0,4)
         obstacle_y = 0
         microbit.display.set_pixel(obstacle_x, obstacle_y, 9)
         obstacle_timer = microbit.running_time()
+        kill_timer = microbit.running_time()
         
     elif microbit.running_time() >= obstacle_timer + 750:
         microbit.display.set_pixel(obstacle_x, obstacle_y, 0)
@@ -109,7 +111,7 @@ def spawn_obstacle(): #Spawns obstacles which move closer every 750ms
         if obstacle_y == 4:
             obstacle_kill = obstacle_x
 
-def kill_check():
+def kill_check(): #Checks if the obstacle kills the player
     global obstacle_kill
     if pos == obstacle_kill:
         kill()
@@ -117,8 +119,22 @@ def kill_check():
 def kill():
     microbit.display.show(microbit.Image.SKULL)
     music.play(music.POWER_DOWN)
-    microbit.sleep(5000)
+    microbit.sleep(3000)
     reset()
+
+def continuos_spawn():
+    global continuos_spawn
+    spawn_obstacle()
+    continuos_spawn_timer = microbit.running_time()
+
+    if microbit.running_time() >= continuos_spawn_timer + 750:
+        spawn_obstacle()
+        continuos_spawn_timer = microbit.running_time()
+
+def kill_timer_check():  #Checks to remove obstacle (remove after multiple obstacle spawn added)
+    global kill_timer, obstacle_kill
+    if microbit.running_time() >= kill_timer + 1:
+        obstacle_kill = -4500
 
 start_menu()
 
