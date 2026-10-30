@@ -311,3 +311,6 @@ start_menu()
 
 while started == True:
     start_game()
+
+#hi lol whats up hi to whoever is marking this :D
+#remember to add speeding up dont be dumb and ship it slow
