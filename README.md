@@ -5,6 +5,20 @@ A game for the BBC micro:bit. You control the car on the bottom row, and dodge t
     - BBC micro:bit v2 (requires v2 for built in speaker and touch sensor).
     - An alternative to a micro:bit v2 is a microbit emulator (https://python.microbit.org/v/3).
 
+### Start guide
+Micro:bit v2:
+    1. Connect your micro:bit v2 to your device via cable.
+    2. In file explorer, drag the .hex file from this project into the micro:bit section.
+    3. The game should run on the microbit after it recieves the .hex file.
+
+Emulator:
+    1. Open the emulator(https://python.microbit.org/v/3).
+    2. Drag the .hex or .py file into the emulator window, the emulator should automatically pick up the code.
+    3. If prompted, select yes to overwrite code.
+    4. Click the play button on the microbit simulation on the left of the screen.
+    5. The game should run on the emulated microbit.
+
+
 ### How to play
 |Input                              |Action                             |
 |Touch the logo to start the game   |Starts or resets the game          |
@@ -25,6 +39,9 @@ A game for the BBC micro:bit. You control the car on the bottom row, and dodge t
     - The obstacles are spawned by 5 functions (spawn_obstacle0() - spawn_obstacle4()), one for each of the max 5 obstacles on the screen at a time. These functions handle spawning, moving and clearing the obstacle pixels.
     - When an obstacle reaches row 4 (bottom row), it sets a variable called obstacle_kill to the x value of the obstacle which reached the bottom. Obstacle_kill only stays active on one pixel at a time, as each of the 5 spawn_obstacleX() functions uses the same obstacle_kill value.
     - The start_menu() function is run at the start of the game, and after reset(). The function start_game(), contains and runs the other functions, and is responsible for handling movement input. Start_game() is run in the game loop, which was kept as clean as possible, containing only the start_game() function.
+
+### Demo
+    No demo link is available because I don't have a micro:bit v2, and emulators aren't able to share code via links. Sorry about that. I can, however, attatch a demonstration video.
 
 ### For the future
     - In the future, I intend to make a changes and improvements which I didn't have time to add to this version.
