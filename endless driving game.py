@@ -1,19 +1,27 @@
 import microbit, random, music
 
 pos = 2
-exit_loop = False
 started = False
 obstacle_kill = -1
 obstacle_y = [-1,-1,-1,-1,-1]
 obstacle_x = [-1,-1,-1,-1,-1]
-obstacle_timer = 0
+obstacle_timer = [0,0,0,0,0]
 previous_pixel = 0
 obstacle_count = 0
+tick = microbit.running_time()
+tick_step = 750
+tick_set = False
+switch = [0,0,0,0,0]
+first_sleep = False
+count_tick_store = False
 
 def start_game(): #Starts other functions
+    set_tick_start()
     show_player()
-    spawn_obstacle0()
     kill_check()
+    continuous_spawn()
+    obstacle_switch()
+    store_count_tick()
 
     if microbit.button_a.was_pressed():
         move_left()
@@ -62,18 +70,22 @@ def show_player(): #Displays player location according to {pos}
 
 def reset(): #Exits loop and displays start screen
     microbit.sleep(200)
-    global exit_loop, started, pos, obstacle_kill, obstacle_y, obstacle_x, obstacle_timer
-    global started
-    global pos
+    global started, pos, obstacle_kill, obstacle_y, obstacle_x, obstacle_timer, previous_pixel, obstacle_count, tick, tick_step, tick_set, first_sleep, switch, count_tick_store
     pos = 2
-    obstacle_kill = -1
-    obstacle_y = -1
-    obstacle_x = -1
-    obstacle_timer = 0
-    exit_loop = True
     started = False
+    obstacle_kill = -1
+    obstacle_y = [-1,-1,-1,-1,-1]
+    obstacle_x = [-1,-1,-1,-1,-1]
+    obstacle_timer = [0,0,0,0,0]
+    previous_pixel = 0
+    obstacle_count = 0
+    tick = microbit.running_time()
+    tick_step = 750
+    tick_set = False
+    first_sleep = False
+    switch = [0,0,0,0,0]
+    count_tick_store = False
     start_menu()
-    exit_loop = False
 
 def start_menu(): #Displays start menu, touch sensor triggers while loop
     global started
@@ -96,13 +108,11 @@ def spawn_obstacle0(): #Spawns obstacles which move closer every 750ms
         obstacle_x[0] = random.randint(0,4)
         obstacle_y[0] = 0
         microbit.display.set_pixel(obstacle_x[0], obstacle_y[0], 9)
-        obstacle_timer = microbit.running_time()
         kill_timer = microbit.running_time()
         
-    elif microbit.running_time() >= obstacle_timer + 750:
+    elif count_tick_store == True:
         microbit.display.set_pixel(obstacle_x[0], obstacle_y[0], 0)
         obstacle_y[0] = obstacle_y[0] + 1
-        obstacle_timer = microbit.running_time()
 
     if obstacle_y[0] > 4:
         obstacle_y[0] = -1
@@ -117,13 +127,10 @@ def spawn_obstacle1(): #Spawns obstacles which move closer every 750ms
         obstacle_x[1] = random.randint(0,4)
         obstacle_y[1] = 0
         microbit.display.set_pixel(obstacle_x[1], obstacle_y[1], 9)
-        obstacle_timer = microbit.running_time()
-        kill_timer = microbit.running_time()
         
-    elif microbit.running_time() >= obstacle_timer + 750:
+    elif count_tick_store == True:
         microbit.display.set_pixel(obstacle_x[1], obstacle_y[1], 0)
         obstacle_y[1] = obstacle_y[1] + 1
-        obstacle_timer = microbit.running_time()
 
     if obstacle_y[1] > 4:
         obstacle_y[1] = -1
@@ -138,13 +145,11 @@ def spawn_obstacle2(): #Spawns obstacles which move closer every 750ms
         obstacle_x[2] = random.randint(0,4)
         obstacle_y[2] = 0
         microbit.display.set_pixel(obstacle_x[2], obstacle_y[2], 9)
-        obstacle_timer = microbit.running_time()
-        kill_timer = microbit.running_time()
         
-    elif microbit.running_time() >= obstacle_timer + 750:
+    elif count_tick_store == True:
         microbit.display.set_pixel(obstacle_x[2], obstacle_y[2], 0)
         obstacle_y[2] = obstacle_y[2] + 1
-        obstacle_timer = microbit.running_time()
+        obstacle_timer[2] = microbit.running_time()
 
     if obstacle_y[2] > 4:
         obstacle_y[2] = -1
@@ -159,13 +164,11 @@ def spawn_obstacle3(): #Spawns obstacles which move closer every 750ms
         obstacle_x[3] = random.randint(0,4)
         obstacle_y[3] = 0
         microbit.display.set_pixel(obstacle_x[3], obstacle_y[3], 9)
-        obstacle_timer = microbit.running_time()
-        kill_timer = microbit.running_time()
         
-    elif microbit.running_time() >= obstacle_timer + 750:
+    elif count_tick_store == True:
         microbit.display.set_pixel(obstacle_x[3], obstacle_y[3], 0)
         obstacle_y[3] = obstacle_y[3] + 1
-        obstacle_timer = microbit.running_time()
+        obstacle_timer[3] = microbit.running_time()
 
     if obstacle_y[3] > 4:
         obstacle_y[3] = -1
@@ -180,13 +183,11 @@ def spawn_obstacle4(): #Spawns obstacles which move closer every 750ms
         obstacle_x[4] = random.randint(0,4)
         obstacle_y[4] = 0
         microbit.display.set_pixel(obstacle_x[4], obstacle_y[4], 9)
-        obstacle_timer = microbit.running_time()
-        kill_timer = microbit.running_time()
         
-    elif microbit.running_time() >= obstacle_timer + 750:
+    elif count_tick_store == True:
         microbit.display.set_pixel(obstacle_x[4], obstacle_y[4], 0)
         obstacle_y[4] = obstacle_y[4] + 1
-        obstacle_timer = microbit.running_time()
+        obstacle_timer[4] = microbit.running_time()
 
     if obstacle_y[4] > 4:
         obstacle_y[4] = -1
@@ -205,31 +206,52 @@ def kill_check(): #Checks if the obstacle kills the player
 def kill(): #Displays death screen
     microbit.display.show(microbit.Image.SKULL)
     music.play(music.POWER_DOWN)
-    microbit.sleep(3000)
+    microbit.sleep(2000)
     reset()
 
 def continuous_spawn(): #Spawns up to 5 objects using a counter
-    global obstacle_count, obstacle_functions
-    if obstacle_count > 4:
-        obstacle_count = 0
-    
-    obstacle_functions[obstacle_count]()
-    obstacle_count = obstacle_count + 1
+    global obstacle_count, obstacle_functions, first_sleep
 
-    if microbit.running_time() >= obstacle_timer + 750:
-        obstacle_functions[obstacle_count]()
+    if obstacle_count > 4:
+        pass
+
+    elif count_tick_store == True:
+        switch[obstacle_count] = 1
         obstacle_count = obstacle_count + 1
 
+def obstacle_switch():
+    global switch
+    if switch[0] == 1:
+        spawn_obstacle0()
+    if switch[1] == 1:
+        spawn_obstacle1()
+    if switch[2] == 1:
+        spawn_obstacle2()
+    if switch[3] == 1:
+        spawn_obstacle3()
+    if switch[4] == 1:
+        spawn_obstacle4()
 
-    
+def count_tick():
+    global tick, tick_step
+    if microbit.running_time() >= tick + tick_step:
+        tick_step = tick_step + 750
+        return True
+    else:
+        return False
+
+def store_count_tick():
+    global count_tick_store
+    count_tick_store = count_tick()
+
+def set_tick_start():
+    global tick, tick_set
+    if tick_set == False:
+        tick = microbit.running_time()
+        tick_set = True
 
 
 start_menu()
 
 while started == True:
     start_game()
-
-    if exit_loop == True:
-        break
-        
-
