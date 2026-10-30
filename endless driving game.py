@@ -14,6 +14,10 @@ tick_set = False
 switch = [0,0,0,0,0]
 first_sleep = False
 count_tick_store = False
+speed= 750
+speed_set = False
+speed_timer = 0
+music_playing = False
 
 def start_game(): #Starts other functions
     set_tick_start()
@@ -22,6 +26,7 @@ def start_game(): #Starts other functions
     continuous_spawn()
     obstacle_switch()
     store_count_tick()
+    check_speed_up()
 
     if microbit.button_a.was_pressed():
         move_left()
@@ -70,7 +75,7 @@ def show_player(): #Displays player location according to {pos}
 
 def reset(): #Exits loop and displays start screen
     microbit.sleep(200)
-    global started, pos, obstacle_kill, obstacle_y, obstacle_x, obstacle_timer, previous_pixel, obstacle_count, tick, tick_step, tick_set, first_sleep, switch, count_tick_store
+    global started, pos, obstacle_kill, obstacle_y, obstacle_x, obstacle_timer, previous_pixel, obstacle_count, tick, tick_step, tick_set, first_sleep, switch, count_tick_store, sleep, speed, speed_set, speed_timer
     pos = 2
     started = False
     obstacle_kill = -1
@@ -82,15 +87,20 @@ def reset(): #Exits loop and displays start screen
     tick = microbit.running_time()
     tick_step = 750
     tick_set = False
-    first_sleep = False
     switch = [0,0,0,0,0]
+    first_sleep = False
     count_tick_store = False
+    speed= 750
+    speed_set = False
+    speed_timer = 0
     start_menu()
 
 def start_menu(): #Displays start menu, touch sensor triggers while loop
     global started
     microbit.display.scroll("Car game: Press touch sensor to start!", wait = False) #41 seconds to finish scrolling
     start_time = microbit.running_time()
+    music_stop()
+    music_play(6)
 
     while not started:
         if microbit.pin_logo.is_touched():
@@ -205,7 +215,8 @@ def kill_check(): #Checks if the obstacle kills the player
 
 def kill(): #Displays death screen
     microbit.display.show(microbit.Image.SKULL)
-    music.play(music.POWER_DOWN)
+    music_stop()
+    music_play(3)
     microbit.sleep(2000)
     reset()
 
@@ -233,9 +244,9 @@ def obstacle_switch():
         spawn_obstacle4()
 
 def count_tick():
-    global tick, tick_step
+    global tick, tick_step, speed
     if microbit.running_time() >= tick + tick_step:
-        tick_step = tick_step + 750
+        tick_step = tick_step + speed
         return True
     else:
         return False
@@ -247,11 +258,59 @@ def store_count_tick():
 def set_tick_start():
     global tick, tick_set
     if tick_set == False:
+        music_stop()
+        music_play(random.randint(4,5))
         tick = microbit.running_time()
         tick_set = True
 
+def check_speed_up():
+    global speed, speed_set, speed_timer
+    if speed_set == False:
+        speed_timer = microbit.running_time()
+        speed_set = True
+
+    if speed > 400:
+        if microbit.running_time() > speed_timer + 10000:
+            speed = speed - 50
+            speed_timer = microbit.running_time()
+
+def music_play(x):
+    global music_playing
+    if music_playing == False:
+        if x == 0:
+            music.stop()
+        if x == 1:
+            music.stop()
+            music.play(music.BA_DING, wait=False)
+        if x == 2:
+            music.stop()
+            music.play(music.PRELUDE, wait=False)
+        if x == 3:
+            music.stop()
+            music.play(music.POWER_DOWN, wait=False)
+        if x == 4:
+            music.stop()
+            music.play(music.PYTHON, loop=True, wait=False)
+        if x == 5:
+            music.stop()
+            music.play(music.PRELUDE, loop=True, wait=False)
+        if x == 6:
+            music.play(music.CHASE, loop=True, wait=False)
+        else:
+            pass
+
+        music_playing = True
+
+def music_stop():
+    global music_playing
+    if music_playing == True:
+        music.stop()
+        music_playing = False
 
 start_menu()
 
 while started == True:
     start_game()
+
+#hi lol whats up hi to whoever is marking this :D
+#remember to add speeding up dont be dumb and ship it slow
